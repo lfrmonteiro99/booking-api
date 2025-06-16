@@ -26,6 +26,11 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /var/www/html
 
+# Copy startup scripts
+COPY startup.sh /usr/local/bin/startup.sh
+COPY worker-startup.sh /usr/local/bin/worker-startup.sh
+RUN chmod +x /usr/local/bin/startup.sh /usr/local/bin/worker-startup.sh
+
 # Copy composer files
 COPY composer.json composer.lock* ./
 
@@ -38,11 +43,8 @@ COPY . .
 # Generate autoload files
 RUN composer dump-autoload --optimize
 
-# Set permissions
-RUN chown -R www-data:www-data /var/www/html
+# Expose port 9000 for PHP-FPM
+EXPOSE 9000
 
-# Expose port 8080
-EXPOSE 8080
-
-# Start Laravel server
-CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8080"] 
+# Start PHP-FPM with startup script
+CMD ["/usr/local/bin/startup.sh"] 
