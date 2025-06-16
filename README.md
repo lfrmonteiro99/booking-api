@@ -34,30 +34,15 @@ Follow these steps to get the project up and running:
     ```
 
 2.  **Set up Environment Variables:**
-    Copy the example environment file and generate an application key:
-    ```bash
-    cp .env.example .env
-    # Modify .env to configure your database (DB_DATABASE, DB_USERNAME, DB_PASSWORD for the 'db' service)
-    # and set a DIALOGFLOW_WEBHOOK_SECRET for webhook security.
-    # Example .env settings (ensure these match your docker-compose.yml for db and redis):
-    # DB_CONNECTION=mysql
-    # DB_HOST=db
-    # DB_PORT=3306
-    # DB_DATABASE=laravel
-    # DB_USERNAME=sail
-    # DB_PASSWORD=password
-    # REDIS_HOST=redis
-    # REDIS_PORT=6379
-    # DIALOGFLOW_WEBHOOK_SECRET=your_super_secret_key_here
-    ```
+    Paste env provided or create env file and copy relevant information on env file provided
 
 3.  **Build and Run Docker Containers:**
     This will build the Docker images and start the `app`, `db`, and `redis` services. `--build --no-cache` ensures a clean build, picking up any Dockerfile changes (like Redis extension installation).
     ```bash
-    docker-compose up -d --build --no-cache
+    docker-compose up -d --build
     ```
 
-4.  **Install PHP Dependencies (inside Docker):**
+4.  **Install PHP Dependencies (shoulnd't be necessary, the Dockerfile already runs this):**
     ```bash
     docker-compose exec app composer install
     ```
