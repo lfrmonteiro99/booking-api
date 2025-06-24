@@ -14,7 +14,9 @@ class UpdateBookingStrategy implements BookingActionStrategyInterface
     public function handle(array $data, User $user): void
     {
         DB::transaction(function () use ($data, $user) {
-            $booking = Booking::findOrFail($data['id']);
+            $booking = Booking::where('id', $data['id'])
+                ->where('user_id', $user->id)
+                ->firstOrFail();
             // Release old dates
             $oldDates = $this->getDateRange($booking->check_in, $booking->check_out);
             Availability::where('room_id', $booking->room_id)

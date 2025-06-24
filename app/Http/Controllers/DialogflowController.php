@@ -2,29 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Interfaces\AvailabilityServiceInterface;
-use App\Interfaces\DialogflowIntentHandlerInterface;
-use App\Services\AvailabilityService;
-use App\Services\DialogflowService;
-use App\IntentHandlers\CheckAvailabilityIntentHandler;
+use App\Services\DialogflowIntentService;
 use Illuminate\Http\Request;
-use Illuminate\Contracts\Container\Container;
 
 class DialogflowController extends Controller
 {
-    protected DialogflowService $dialogflow;
-    protected AvailabilityServiceInterface $availabilityService;
-    protected Container $container;
-    protected array $intentHandlers;
+    protected DialogflowIntentService $dialogflowIntentService;
 
-    public function __construct(DialogflowService $dialogflow, AvailabilityServiceInterface $availabilityService, Container $container)
+    public function __construct(DialogflowIntentService $dialogflowIntentService)
     {
-        $this->dialogflow = $dialogflow;
-        $this->availabilityService = $availabilityService;
-        $this->container = $container;
-        $this->intentHandlers = [
-            'CheckAvailability' => CheckAvailabilityIntentHandler::class,
-        ];
+        $this->dialogflowIntentService = $dialogflowIntentService;
     }
 
     /**
@@ -56,24 +43,19 @@ class DialogflowController extends Controller
             'message' => 'required|string',
         ]);
 
-        $userMessage = $request->input('message');
-        $dialogflowResponse = $this->dialogflow->detectIntent($userMessage);
+        $result = $this->dialogflowIntentService->processUserMessage($request->input('message'));
 
-        if (!$dialogflowResponse) {
+        if (!$result['success']) {
             return response()->json([
-                'error' => 'Invalid response from Dialogflow',
-                'response' => $dialogflowResponse
-            ], 500);
+                'error' => $result['error'],
+                'response' => $result['response']
+            ], $result['status_code']);
         }
-        
-        $availabilityResponse = $this->availabilityService->checkAvailability($dialogflowResponse);
-
-        $naturalLanguageReply = $this->availabilityService->formatAvailabilityResponse($availabilityResponse);
 
         return response()->json([
-            'intent'     => $dialogflowResponse['queryResult']['intent']['displayName'] ?? null,
-            'parameters' => $dialogflowResponse['queryResult']['parameters'] ?? [],
-            'reply'      => $naturalLanguageReply,
+            'intent' => $result['intent'],
+            'parameters' => $result['parameters'],
+            'reply' => $result['reply'],
         ]);
     }
 
@@ -104,20 +86,9 @@ class DialogflowController extends Controller
      */
     public function detect(Request $request)
     {
-        $body = $request->json('queryResult');
+        $queryResult = $request->json('queryResult');
+        $result = $this->dialogflowIntentService->processWebhookRequest($queryResult);
 
-        $intent = $body['intent']['displayName'];
-        $params = $body['parameters'];
-
-        $replyText = $body['fulfillmentText'] ?? "Sorry, I didn't get that.";
-
-        if (isset($this->intentHandlers[$intent])) {
-            $handlerClass = $this->intentHandlers[$intent];
-            /** @var \App\Interfaces\DialogflowIntentHandlerInterface $handler */
-            $handler = $this->container->make($handlerClass);
-            $replyText = $handler->handle($params);
-        }
-
-        return response()->json(['fulfillmentText' => $replyText]);
+        return response()->json(['fulfillmentText' => $result['fulfillmentText']]);
     }
 }

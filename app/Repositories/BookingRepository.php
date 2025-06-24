@@ -34,4 +34,32 @@ class BookingRepository implements BookingRepositoryInterface
     {
         return Booking::where('user_id', $userId)->get()->all();
     }
+
+    public function getByIdForUser(int $id, int $userId): ?Booking
+    {
+        return Booking::where('id', $id)->where('user_id', $userId)->first();
+    }
+
+    public function updateForUser(int $id, array $data, int $userId): ?Booking
+    {
+        $booking = $this->getByIdForUser($id, $userId);
+        
+        if (!$booking) {
+            return null;
+        }
+        
+        $booking->update($data);
+        return $booking;
+    }
+
+    public function deleteForUser(int $id, int $userId): bool
+    {
+        $booking = $this->getByIdForUser($id, $userId);
+        
+        if (!$booking) {
+            return false;
+        }
+        
+        return $booking->delete();
+    }
 } 

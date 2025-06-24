@@ -108,4 +108,26 @@ class AvailabilityService implements AvailabilityServiceInterface
 
         return "Sorry, no availability found for those dates and guest count.";
     }
+
+    /**
+     * Validate room availability for booking
+     */
+    public function validateRoomAvailability(int $roomId, string $checkIn, string $checkOut, int $guests): bool
+    {
+        $checkInDate = Carbon::parse($checkIn);
+        $checkOutDate = Carbon::parse($checkOut);
+        
+        return $this->repository->isRoomAvailableForBooking($roomId, $checkInDate, $checkOutDate, $guests);
+    }
+
+    /**
+     * Get room pricing data for booking calculations
+     */
+    public function getRoomPricingData(int $roomId, string $checkIn, string $checkOut): \Illuminate\Support\Collection
+    {
+        $checkInDate = Carbon::parse($checkIn);
+        $checkOutDate = Carbon::parse($checkOut);
+        
+        return $this->repository->getRoomPricingData($roomId, $checkInDate, $checkOutDate);
+    }
 }

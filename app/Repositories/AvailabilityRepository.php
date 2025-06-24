@@ -98,4 +98,32 @@ class AvailabilityRepository implements AvailabilityRepositoryInterface
 
         return $availableRooms;
     }
+
+    public function getRoomPricingData(int $roomId, Carbon $checkIn, Carbon $checkOut): Collection
+    {
+        return \App\Models\Availability::where('room_id', $roomId)
+            ->whereBetween('date', [$checkIn->toDateString(), $checkOut->subDay()->toDateString()])
+            ->orderBy('date')
+            ->get();
+    }
+
+    public function isRoomAvailableForBooking(int $roomId, Carbon $checkIn, Carbon $checkOut, int $guests): bool
+    {
+        $nights = $checkIn->diffInDays($checkOut);
+        
+        if ($nights <= 0) {
+            return false;
+        }
+
+        // Check if room is available for all nights and can accommodate guests
+        $unavailableDays = \App\Models\Availability::where('room_id', $roomId)
+            ->whereBetween('date', [$checkIn->toDateString(), $checkOut->subDay()->toDateString()])
+            ->where(function ($query) use ($guests) {
+                $query->where('is_available', false)
+                      ->orWhere('max_guests', '<', $guests);
+            })
+            ->count();
+
+        return $unavailableDays === 0;
+    }
 }

@@ -3,12 +3,16 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Bus;
-use App\Jobs\ProcessAvailabilityChunk;
+use App\Services\IngestionService;
 
 class AvailabilityIngestionController extends Controller
 {
+    protected IngestionService $ingestionService;
+
+    public function __construct(IngestionService $ingestionService)
+    {
+        $this->ingestionService = $ingestionService;
+    }
     /**
      * @OA\Post(
      *      path="/api/availability/ingest",
@@ -60,23 +64,12 @@ class AvailabilityIngestionController extends Controller
      */
     public function ingest(Request $request)
     {
-        $propertiesData = $request->all();
+        $result = $this->ingestionService->processAvailabilityIngestion($request->all());
 
-        if (empty($propertiesData)) {
-            return response()->json(['message' => 'No data provided for ingestion'], 400);
+        if (!$result['success']) {
+            return response()->json(['message' => $result['message']], $result['status_code']);
         }
 
-        foreach ($propertiesData as $propertyData) {
-            $propertyId = $propertyData['property_id'] ?? null;
-            $roomsData = $propertyData['rooms'] ?? [];
-
-            if (empty($propertyId) || empty($roomsData)) {
-                return response()->json(['message' => 'Invalid data format: property_id or rooms missing'], 400);
-            }
-
-            Bus::dispatch(new ProcessAvailabilityChunk($propertyId, $roomsData));
-        }
-
-        return response()->json(['message' => 'Availability ingestion initiated successfully.'], 202);
+        return response()->json(['message' => $result['message']], $result['status_code']);
     }
 } 

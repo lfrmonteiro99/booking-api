@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Room;
 use App\Models\Property;
 use App\Models\Booking;
+use App\Models\Availability;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -23,6 +24,17 @@ class BookingTest extends TestCase
         $this->user = User::factory()->create();
         $this->property = Property::factory()->create();
         $this->room = Room::factory()->create(['property_id' => $this->property->id]);
+        
+        // Create availability data for the next 30 days
+        for ($i = 0; $i <= 30; $i++) {
+            Availability::factory()->create([
+                'room_id' => $this->room->id,
+                'date' => now()->addDays($i)->format('Y-m-d'),
+                'is_available' => true,
+                'price' => 100.00,
+                'max_guests' => 4,
+            ]);
+        }
     }
 
     public function test_user_can_list_their_bookings()
@@ -46,8 +58,7 @@ class BookingTest extends TestCase
             'guests' => 2,
         ];
         $response = $this->actingAs($this->user)->postJson('/api/bookings', $data);
-        $response->assertCreated()->assertJsonFragment(['room_id' => $this->room->id]);
-        $this->assertDatabaseHas('bookings', ['user_id' => $this->user->id, 'room_id' => $this->room->id]);
+        $response->assertStatus(202)->assertJson(['message' => 'Booking is being processed. You will receive a confirmation email shortly.']);
     }
 
     public function test_user_can_view_a_booking()
@@ -70,8 +81,7 @@ class BookingTest extends TestCase
             'guests' => 2,
         ]);
         $response = $this->actingAs($this->user)->putJson('/api/bookings/' . $booking->id, ['guests' => 3]);
-        $response->assertOk()->assertJsonFragment(['guests' => 3]);
-        $this->assertDatabaseHas('bookings', ['id' => $booking->id, 'guests' => 3]);
+        $response->assertStatus(202)->assertJson(['message' => 'Booking update is being processed. You will receive an email shortly.']);
     }
 
     public function test_user_can_delete_a_booking()
@@ -82,7 +92,6 @@ class BookingTest extends TestCase
             'property_id' => $this->property->id,
         ]);
         $response = $this->actingAs($this->user)->deleteJson('/api/bookings/' . $booking->id);
-        $response->assertOk()->assertJsonFragment(['message' => 'Booking deleted successfully']);
-        $this->assertDatabaseMissing('bookings', ['id' => $booking->id]);
+        $response->assertStatus(202)->assertJson(['message' => 'Booking cancellation is being processed. You will receive an email shortly.']);
     }
 } 

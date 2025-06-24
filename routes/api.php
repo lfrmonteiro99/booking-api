@@ -25,5 +25,6 @@ Route::middleware(['throttle:api', 'auth:sanctum'])->group(function () {
     Route::get('/user', [AuthController::class, 'user']);
     Route::get('/availability', [AvailabilityController::class, 'check']);
     Route::post('/subscribe', [SubscriptionController::class, 'subscribe']);
+    Route::get('/bookings/pricing-preview', [BookingController::class, 'pricingPreview']);
     Route::apiResource('/bookings', BookingController::class);
 });
