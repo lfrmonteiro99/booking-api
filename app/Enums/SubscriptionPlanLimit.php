@@ -6,10 +6,10 @@ use App\Enums\SubscriptionPlan;
 
 enum SubscriptionPlanLimit: int
 {
-    case BASIC = 2;
-    case PREMIUM = 3;
-    case PRO = 4;
-    case ENTERPRISE = 5;
+    case BASIC = 5;
+    case PREMIUM = 10;
+    case PRO = 20;
+    case ENTERPRISE = 50;
 
     public static function getLimit(string $planName): int
     {

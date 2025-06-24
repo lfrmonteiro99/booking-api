@@ -10,6 +10,10 @@ use App\Interfaces\SubscriptionRepositoryInterface;
 use App\Repositories\SubscriptionRepository;
 use App\Interfaces\SubscriptionServiceInterface;
 use App\Services\SubscriptionService;
+use App\Interfaces\BookingRepositoryInterface;
+use App\Repositories\BookingRepository;
+use App\Services\BookingService;
+use App\Interfaces\BookingServiceInterface;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -23,6 +27,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(AvailabilityRepositoryInterface::class, AvailabilityRepository::class);
         $this->app->bind(SubscriptionServiceInterface::class, SubscriptionService::class);
         $this->app->bind(SubscriptionRepositoryInterface::class, SubscriptionRepository::class);
+        $this->app->bind(BookingServiceInterface::class, BookingService::class);
+        $this->app->bind(BookingRepositoryInterface::class, BookingRepository::class);
     }
 
     /**

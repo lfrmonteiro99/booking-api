@@ -7,6 +7,7 @@ use App\Http\Controllers\DialogflowController;
 use App\Http\Controllers\AvailabilityIngestionController;
 use App\Http\Controllers\AvailabilityController;
 use App\Http\Controllers\Api\SubscriptionController;
+use App\Http\Controllers\BookingController;
 use Illuminate\Support\Facades\Route;
 
 // Public routes
@@ -24,4 +25,5 @@ Route::middleware(['throttle:api', 'auth:sanctum'])->group(function () {
     Route::get('/user', [AuthController::class, 'user']);
     Route::get('/availability', [AvailabilityController::class, 'check']);
     Route::post('/subscribe', [SubscriptionController::class, 'subscribe']);
+    Route::apiResource('/bookings', BookingController::class);
 });

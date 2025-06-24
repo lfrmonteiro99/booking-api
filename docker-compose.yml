@@ -82,6 +82,17 @@ services:
     networks:
       - laravel-network
 
+  mailhog:
+    image: mailhog/mailhog
+    container_name: mailhog
+    restart: unless-stopped
+    platform: linux/amd64
+    ports:
+      - "8025:8025" # Web UI
+      - "1025:1025" # SMTP
+    networks:
+      - laravel-network
+
 networks:
   laravel-network:
     driver: bridge
